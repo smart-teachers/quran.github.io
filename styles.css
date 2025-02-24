@@ -1,91 +1,141 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 20px;
-    direction: rtl;
+// قائمة المقرئين
+const reciters = [
+    { name: "عبد الباسط عبد الصمد", id: "ar.abdulbasitmurattal" },
+    { name: "مشاري العفاسي", id: "ar.alafasy" },
+    { name: "سعد الغامدي", id: "ar.saadghamdi" },
+    // يمكنك إضافة المزيد من المقرئين (حتى 10)
+];
+
+// متغيرات عالمية
+let currentSurah = null;
+let currentAyah = 1;
+let ayahsData = [];
+let timings = {};
+
+// تعبئة قائمة السور
+async function loadSurahs() {
+    const response = await fetch("https://api.alquran.cloud/v1/surah");
+    const data = await response.json();
+    const surahSelect = document.getElementById("surahSelect");
+    data.data.forEach(surah => {
+        const option = document.createElement("option");
+        option.value = surah.number;
+        option.textContent = `${surah.number} - ${surah.name}`;
+        surahSelect.appendChild(option);
+    });
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+// تعبئة قائمة المقرئين
+function loadReciters() {
+    const reciterSelect = document.getElementById("reciterSelect");
+    reciters.forEach(reciter => {
+        const option = document.createElement("option");
+        option.value = reciter.id;
+        option.textContent = reciter.name;
+        reciterSelect.appendChild(option);
+    });
 }
 
-h1 {
-    text-align: center;
-    color: #2c3e50;
-    font-size: 28px;
-    margin-bottom: 20px;
-}
+// جلب وعرض السورة
+async function loadSurah() {
+    const surahNumber = document.getElementById("surahSelect").value;
+    if (!surahNumber) return;
 
-select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    font-size: 16px;
-    border: 1px solid #ddd;
-}
+    currentSurah = surahNumber;
+    currentAyah = 1;
 
-.ayahs {
-    margin-top: 20px;
-    font-family: 'Uthmani', sans-serif;
-    font-size: 24px;
-    line-height: 2;
-    color: #333;
-}
-
-.ayah {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    transition: background 0.3s;
-    cursor: pointer;
-}
-
-.ayah.active {
-    background-color: #e8f5e9;
-}
-
-audio {
-    width: 100%;
-    margin-top: 20px;
-    border-radius: 5px;
-}
-
-.controls {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.controls button {
-    padding: 10px 20px;
-    margin: 0 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.controls button:hover {
-    background-color: #2980b9;
-}
-
-/* تصميم متجاوب */
-@media (max-width: 600px) {
-    .container {
-        padding: 10px;
+    // التحقق من التخزين المؤقت
+    const cachedSurah = localStorage.getItem(`surah_${surahNumber}`);
+    if (cachedSurah) {
+        ayahsData = JSON.parse(cachedSurah);
+        displayAyahs(ayahsData);
+    } else {
+        const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.uthmani`);
+        const data = await response.json();
+        ayahsData = data.data.ayahs;
+        localStorage.setItem(`surah_${surahNumber}`, JSON.stringify(ayahsData));
+        displayAyahs(ayahsData);
     }
-    .ayahs {
-        font-size: 20px;
-    }
-    .controls button {
-        padding: 8px 15px;
-        font-size: 14px;
+
+    // جلب توقيتات الآيات (يجب توفير ملف حقيقي لاحقًا)
+    await loadTimings(surahNumber);
+
+    // تشغيل الآية الأولى فقط عند تحميل السورة
+    playAyah(1);
+}
+
+// عرض الآيات
+function displayAyahs(ayahs) {
+    const ayahsContainer = document.getElementById("ayahsContainer");
+    ayahsContainer.innerHTML = "";
+    ayahs.forEach(ayah => {
+        const ayahDiv = document.createElement("div");
+        ayahDiv.classList.add("ayah");
+        ayahDiv.dataset.ayahNumber = ayah.numberInSurah;
+        ayahDiv.textContent = ayah.text;
+        ayahDiv.onclick = () => playAyah(ayah.numberInSurah);
+        ayahsContainer.appendChild(ayahDiv);
+    });
+}
+
+// جلب توقيتات الآيات (مثال فقط، يحتاج إلى ملف JSON حقيقي)
+async function loadTimings(surahNumber) {
+    try {
+        const response = await fetch(`timings/surah_${surahNumber}.json`);
+        timings = await response.json();
+    } catch (e) {
+        console.log("لم يتم العثور على ملف التوقيتات");
+        timings = {};
     }
 }
+
+// تشغيل الصوت لآية معينة
+function playAyah(ayahNumber) {
+    const reciterId = document.getElementById("reciterSelect").value;
+    if (!reciterId) return;
+
+    currentAyah = ayahNumber;
+    const audioPlayer = document.getElementById("audioPlayer");
+    audioPlayer.src = `https://cdn.alquran.cloud/media/audio/ayah/${reciterId}/${currentSurah}_${ayahNumber}/high`;
+    audioPlayer.play();
+
+    // إبراز الآية الحالية
+    highlightAyah(ayahNumber);
+}
+
+// إبراز الآية
+function highlightAyah(ayahNumber) {
+    const ayahs = document.querySelectorAll(".ayah");
+    ayahs.forEach(ayah => {
+        if (ayah.dataset.ayahNumber == ayahNumber) {
+            ayah.classList.add("active");
+        } else {
+            ayah.classList.remove("active");
+        }
+    });
+}
+
+// تحديث الصوت عند اختيار مقرئ جديد
+function updateAudio() {
+    playAyah(currentAyah);
+}
+
+// تشغيل الآية التالية
+document.getElementById("playNext").onclick = () => {
+    if (currentAyah < ayahsData.length) {
+        playAyah(currentAyah + 1);
+    }
+};
+
+// إيقاف الصوت
+document.getElementById("stopAudio").onclick = () => {
+    const audioPlayer = document.getElementById("audioPlayer");
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+};
+
+// تهيئة الصفحة
+window.onload = () => {
+    loadSurahs();
+    loadReciters();
+};
