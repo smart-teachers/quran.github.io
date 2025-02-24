@@ -18,6 +18,8 @@ body {
 h1 {
     text-align: center;
     color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 20px;
 }
 
 select {
@@ -26,6 +28,7 @@ select {
     margin: 10px 0;
     border-radius: 5px;
     font-size: 16px;
+    border: 1px solid #ddd;
 }
 
 .ayahs {
@@ -40,6 +43,7 @@ select {
     padding: 10px;
     border-bottom: 1px solid #ddd;
     transition: background 0.3s;
+    cursor: pointer;
 }
 
 .ayah.active {
@@ -49,6 +53,27 @@ select {
 audio {
     width: 100%;
     margin-top: 20px;
+    border-radius: 5px;
+}
+
+.controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.controls button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.controls button:hover {
+    background-color: #2980b9;
 }
 
 /* تصميم متجاوب */
@@ -58,5 +83,9 @@ audio {
     }
     .ayahs {
         font-size: 20px;
+    }
+    .controls button {
+        padding: 8px 15px;
+        font-size: 14px;
     }
 }
