@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق القرآن الكريم</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- استيراد خط الرسم العثماني -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quran-font@1.0.0/dist/uthmani.css">
+</head>
+<body>
+    <div class="container">
+        <h1>تطبيق القرآن الكريم</h1>
+        <!-- قائمة السور -->
+        <select id="surahSelect" onchange="loadSurah()">
+            <option value="">اختر سورة</option>
+        </select>
+        <!-- اختيار المقرئ -->
+        <select id="reciterSelect" onchange="updateAudio()">
+            <option value="">اختر مقرئ</option>
+        </select>
+        <!-- عرض الآيات -->
+        <div id="ayahsContainer" class="ayahs"></div>
+        <!-- مشغل الصوت -->
+        <audio id="audioPlayer" controls></audio>
+    </div>
+
+    <!-- استيراد المكتبات -->
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.3/dist/howler.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
